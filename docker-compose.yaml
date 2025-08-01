@@ -1,0 +1,42 @@
+services:
+  app:
+    build: ./app
+    container_name: ai-assistant-ui
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+  
+  terminal-mcp:
+    build: ./server
+    container_name: ai-assistant-terminal
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    
+  kali-host:
+    build: ./kali
+    container_name: ai-assistant-kali
+    ports:
+      - "2222:22"      # SSH access
+    environment:
+      - TERM=xterm-256color
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    cap_add:
+    - NET_ADMIN
+    - NET_RAW
+  
+
+#     networks:
+#       - kali_network
+
+# volumes:
+#   kali_home:
+#     driver: local
+#   kali_root:
+#     driver: local
+
+# networks:
+#   kali_network:
+#     driver: bridge

@@ -1,0 +1,17 @@
+# Git and Docker
+.git
+.gitignore
+.dockerignore
+Dockerfile
+
+# Dependencies
+node_modules
+
+# Nuxt build cache and output
+.nuxt
+.output
+dist
+
+# Logs and environment files
+*.log
+.env
