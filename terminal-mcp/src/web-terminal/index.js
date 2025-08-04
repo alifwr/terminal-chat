@@ -2,6 +2,7 @@
 import { createServer } from "http";
 import pty from "node-pty";
 import { Server } from "socket.io";
+import { extractOutput, terminalToMarkdown } from './markdown_converter.js';
 
 export class WebTerminalServer {
     constructor(port = 8080, sshConfig = { host: '172.18.0.2', user: 'kaliuser' }) {
@@ -17,28 +18,48 @@ export class WebTerminalServer {
 
     invokeTerminal(command, sessionId) {
         // Clear the stored output for each PTY process before sending a new command
+        let idlePattern = '';
+
         for (const ptyProcess of this.activePtyProcesses.keys()) {
             const instance = this.activePtyProcesses.get(ptyProcess);
             if (instance.pid == sessionId) {
-                this.activePtyProcesses.set(ptyProcess, { ...instance, output: '' });
+                idlePattern = instance.output;
+                this.activePtyProcesses.set(ptyProcess, { ...instance, output: '', isFinished: false });
                 ptyProcess.write(command);
             }
         }
 
         // Return the stored outputs after a delay to allow command execution
         return new Promise((resolve) => {
-            setTimeout(() => {
-                const outputs = [];
+            const intervalId = setInterval(() => {
                 for (const [ptyProcess, instance] of this.activePtyProcesses) {
                     if (instance.pid == sessionId) {
-                        outputs.push(instance.output);
+                        if (idlePattern.split('\n').slice(-2).join('\n') === instance.output.split('\n').slice(-2).join('\n')){
+                            resolve({
+                                stdout: instance.output,
+                                stderr: ''
+                            })
+                            clearInterval(intervalId);
+                        }
                     }
                 }
-                resolve({
-                    stdout: outputs.join('\n'),
-                    stderr: ''
-                });
-            }, 1000); // Wait 1 second for command execution
+            });
+
+            // const timeoutId = setTimeout(() => {
+            //     const outputs = [];
+            //     for (const [ptyProcess, instance] of this.activePtyProcesses) {
+            //         if (instance.pid == sessionId) {
+            //             console.log("IDLE PATTERN: ", idlePattern.split('\n').slice(-2).join('\n'));
+            //             console.log("INSTANCE OUTPUT: ", instance.output.split('\n').slice(-2).join('\n'));
+            //             outputs.push(instance.output);
+            //             console.log("INSTANCE OUTPUT: ", outputs.slice(-2).join('\n'));
+            //         }
+            //     }
+            //     resolve({
+            //         stdout: outputs.join('\n'),
+            //         stderr: ''
+            //     });
+            // }, 10000); // Wait 1 second for command execution
         });
     }
 
@@ -46,11 +67,10 @@ export class WebTerminalServer {
         const ptyProcess = pty.spawn('ssh', [`${this.sshConfig.user}@${this.sshConfig.host}`], {
             name: "xterm-color",
             cols: 80,
-            rows: 50,
+            rows: 30,
             cwd: process.env.HOME,
             env: process.env,
         });
-        console.log(process.env)
 
         return ptyProcess;
     }
@@ -73,7 +93,7 @@ export class WebTerminalServer {
             ptyProcess.on("data", (data) => {
                 // Update the stored output for this PTY process
                 const currentinstance = this.activePtyProcesses.get(ptyProcess);
-                this.activePtyProcesses.set(ptyProcess, {...currentinstance, output: currentinstance.output + data});
+                this.activePtyProcesses.set(ptyProcess, { ...currentinstance, output: currentinstance.output + data });
                 socket.emit("terminal.incomingData", data);
             });
 

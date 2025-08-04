@@ -77,12 +77,12 @@ export class MCPServer {
 
             const command = request.params.arguments?.command;
             const sessionId = request.params.arguments?.sessionId;
-            
+
             if (!command) {
                 throw new Error('Command is required');
             }
 
-            if ((this.terminal != null) && !sessionId){
+            if ((this.terminal != null) && !sessionId) {
                 throw new Error('Command is required');
             }
 
@@ -102,7 +102,7 @@ export class MCPServer {
 
                 if (this.terminal != null) {
                     const result = await this.terminal(`${command}\n`, sessionId);
-                    stdout = result.stdout;
+                    stdout = result.stdout
                     stderr = result.stderr;
                 } else {
                     const result = await execa(command, [], {
