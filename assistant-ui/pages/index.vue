@@ -2,9 +2,10 @@
 import { useChat } from '@ai-sdk/vue';
 import { ref, nextTick, onMounted } from 'vue';
 
-const { messages, input, handleSubmit } = useChat({ maxSteps: 5 });
+const { messages, input, status, handleSubmit } = useChat({ maxSteps: 5 });
 const messagesContainer = ref<HTMLElement>();
-const sessionId = ref(null)
+const sessionId = ref(null);
+const expandedToolInvocations = ref<Record<string, boolean>>({});
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -27,6 +28,11 @@ const handleFormSubmit = (e: Event) => {
 
 const getTimeStamp = () => {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const toggleToolInvocation = (index: number) => {
+  const key = `${messages.value.length}-${index}`;
+  expandedToolInvocations.value[key] = !expandedToolInvocations.value[key];
 };
 </script>
 
@@ -70,8 +76,13 @@ const getTimeStamp = () => {
                 <div v-for="(part, partIndex) in m.parts" :key="partIndex">
                   <div v-if="part.type === 'text'" class="text-part">{{ part.text }}</div>
                   <div v-if="part.type === 'tool-invocation'" class="tool-part">
-                    <div class="tool-label">Process</div>
-                    <pre>{{ part.toolInvocation }}</pre>
+                    <div class="tool-header" @click="toggleToolInvocation(partIndex)">
+                      <div class="tool-label">Process</div>
+                      <div class="tool-toggle">
+                        {{ expandedToolInvocations[`${messages.length}-${partIndex}`] ? '▼' : '▶' }}
+                      </div>
+                    </div>
+                    <pre v-if="expandedToolInvocations[`${messages.length}-${partIndex}`]">{{ part.toolInvocation }}</pre>
                   </div>
                 </div>
               </div>
@@ -81,7 +92,8 @@ const getTimeStamp = () => {
 
         <form @submit.prevent="handleFormSubmit" class="input-form">
           <div class="input-container">
-            <input v-model="input" placeholder="Type your message..." class="input-field" autocomplete="off" />
+            <input v-model="input" placeholder="Type your message..." class="input-field" :class="{ 'loading': status === 'streaming' }" autocomplete="off" :disabled="status==='streaming'" />
+
             <button type="submit" class="send-button" :disabled="!input.trim()">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
@@ -99,7 +111,7 @@ const getTimeStamp = () => {
 
         <div class="terminal-wrapper">
           <ClientOnly>
-            <XTerminal server-url="http://localhost:8080" @session-id-received="sessionId = $event" />
+            <XTerminal server-url="http://mcp-terminal:8080" @session-id-received="sessionId = $event" />
             <template #fallback>
               <div class="terminal-loading">
                 <p>Loading terminal...</p>
@@ -340,6 +352,24 @@ body {
   margin-bottom: 0;
 }
 
+.tool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tool-toggle {
+  font-size: 0.75rem;
+  color: #7d8590;
+  transition: color 0.2s ease;
+}
+
+.tool-header:hover .tool-toggle {
+  color: #e6edf3;
+}
+
 .tool-part {
   background: #0d1117;
   border: 1px solid #21262d;
@@ -361,6 +391,8 @@ body {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
@@ -395,6 +427,22 @@ body {
 
 .input-field::placeholder {
   color: #7d8590;
+}
+
+.input-field.loading {
+  background-image: linear-gradient(90deg, transparent 0%, #30363d 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 .send-button {

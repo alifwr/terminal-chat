@@ -64,7 +64,8 @@ export class WebTerminalServer {
     }
 
     createTerminalInstance() {
-        const ptyProcess = pty.spawn('ssh', [`${this.sshConfig.user}@${this.sshConfig.host}`], {
+        const ptyProcess = pty.spawn('bash', [], {
+            // const ptyProcess = pty.spawn('ssh', [`${this.sshConfig.user}@${this.sshConfig.host}`], {
             name: "xterm-color",
             cols: 80,
             rows: 30,

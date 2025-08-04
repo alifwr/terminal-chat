@@ -17,7 +17,8 @@ export default defineLazyEventHandler(async () => {
   const mcpClient = await createMCPClient({
     transport: {
       type: 'sse',
-      url: 'http://localhost:8000/sse',
+      url: 'http://terminal-mcp:8000/sse',
+      // url: 'http://localhost:8000/sse',
     },
   });
 

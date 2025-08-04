@@ -1,15 +1,28 @@
 # Use Ubuntu as base image since we need to install native dependencies for node-pty
-FROM node:lts-bullseye AS builder
+FROM kalilinux/kali-rolling:latest
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# # Install Node.js and other dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
+# Fix Kali repositories and install all packages
+RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    apt clean && \
+    apt update --fix-missing && \
+    apt install -y --no-install-recommends \
+    kali-linux-headless \
     build-essential \
+    openssh-server \
     python3 \
+    gnupg \
+    curl \
+    wget \
+    npm \
+    git \
+    sudo \
+    nano \
+    nodejs \
+    procps \
+    && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -17,26 +30,36 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json .
-RUN ls -al
 
 # Install dependencies
+RUN which npm
 RUN npm install
-COPY . .
+
+# # Create startup script
+# COPY start.sh /usr/local/bin/start.sh
+# RUN chmod +x /usr/local/bin/start.sh
+
+# Create a non-root user for better security
+RUN useradd -m -s /bin/bash kaliuser && \
+    echo "kaliuser:kaliuser" | chpasswd && \
+    usermod -aG sudo kaliuser && \
+    echo "kaliuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Copy source code
-RUN ls -al
-RUN cat package.json
-
-# Expose ports
-# 8080 for web terminal server
-# 8000 for supergateway (MCP server)
-EXPOSE 8080
-EXPOSE 8000
+COPY . .
 
 # Create a non-root user
-# RUN useradd -m -u 1001 mcpuser
-# USER mcpuser
+USER kaliuser
 
-# Start command
-CMD ["npm", "run", "start"]
+# Expose ports
+EXPOSE 22 8080 8000
+
+RUN which npm
+RUN ls /app/package.json
+
+# Set the entrypoint
+# ENTRYPOINT ["/usr/local/bin/start.sh"]
+
+# # Start command
+CMD ["npm", "start"]
 # CMD ["npx", "-y", "supergateway", "--stdio", "\"node", "src/index.js", "--both\"", "--port", "8000", "--baseUrl", "http://localhost:8000", "--ssePath", "/sse", "--messagePath", "/message"]

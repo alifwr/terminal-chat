@@ -5,6 +5,8 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    networks:
+      - kali_network
   
   terminal-mcp:
     build: ./terminal-mcp
@@ -14,26 +16,27 @@ services:
       - "8000:8000"  # MCP server via supergateway
     restart: unless-stopped
     volumes:
-      - .:/app
       - /etc/localtime:/etc/localtime:ro
     environment:
       - NODE_ENV=production
     stdin_open: true
     tty: true
+    networks:
+      - kali_network
     
-  kali-host:
-    build: ./kali-host
-    container_name: pentesting-assist-kali
-    ports:
-      - "22:22"      # SSH access
-    environment:
-      - TERM=xterm-256color
-    tty: true
-    stdin_open: true
-    restart: unless-stopped
-    cap_add:
-    - NET_ADMIN
-    - NET_RAW
+  # kali-host:
+  #   build: ./kali-host
+  #   container_name: pentesting-assist-kali
+  #   ports:
+  #     - "2222:22"      # SSH access
+  #   environment:
+  #     - TERM=xterm-256color
+  #   tty: true
+  #   stdin_open: true
+  #   restart: unless-stopped
+  #   cap_add:
+  #   - NET_ADMIN
+  #   - NET_RAW
   
 
 #     networks:
@@ -45,6 +48,6 @@ services:
 #   kali_root:
 #     driver: local
 
-# networks:
-#   kali_network:
-#     driver: bridge
+networks:
+  kali_network:
+    driver: bridge
