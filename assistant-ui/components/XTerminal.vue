@@ -1,27 +1,33 @@
 <!-- components/XTerminal.vue -->
 <template>
-  <div class="terminal-container">
-    <div class="terminal-header">
-      <div class="terminal-controls">
-        <div class="control-dot red"></div>
-        <div class="control-dot yellow"></div>
-        <div class="control-dot green"></div>
+  <div class="flex flex-col min-h-[300px] bg-gray-900 rounded-lg overflow-hidden">
+    <div class="flex items-center justify-between p-2 bg-gray-800 border-b border-gray-700 min-h-10">
+      <div class="flex gap-2">
+        <h3 class="text-white font-medium">Kali Terminal MCP</h3>
       </div>
-      <div class="terminal-status">
-        <div :class="['status-indicator', connectionStatus]">
-          <div class="status-dot"></div>
+      <div class="flex items-center gap-2">
+        <div :class="[
+          'flex items-center gap-1.5 text-xs font-medium',
+          connectionStatus === 'connected' ? 'text-green-500' :
+          connectionStatus === 'connecting' ? 'text-yellow-500' : 'text-red-500'
+        ]">
+          <div :class="[
+            'w-1.5 h-1.5 rounded-full',
+            connectionStatus === 'connected' ? 'bg-green-500 animate-pulse' :
+            connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
+          ]"></div>
           <span>{{ getStatusText() }}</span>
         </div>
-        <button 
-          @click="reconnect" 
+        <button
+          @click="reconnect"
           :disabled="connectionStatus === 'connecting'"
-          class="reconnect-btn"
+          class="border border-gray-700 text-gray-500 px-2 py-1 rounded text-sm transition-all hover:bg-gray-700 hover:text-gray-200 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           ↻
         </button>
       </div>
     </div>
-    <div ref="terminalContainer" class="terminal-content"></div>
+    <div ref="terminalContainer" class="p-1 flex-1 overflow-hidden bg-gray-900"></div>
   </div>
 </template>
 
@@ -222,184 +228,3 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.terminal-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #0d1117;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.terminal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  background: #161b22;
-  border-bottom: 1px solid #30363d;
-  min-height: 40px;
-}
-
-.terminal-controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.control-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.control-dot.red {
-  background: #ff5f56;
-}
-
-.control-dot.yellow {
-  background: #ffbd2e;
-}
-
-.control-dot.green {
-  background: #27ca3f;
-}
-
-.terminal-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #e6edf3;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.terminal-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-indicator.connected {
-  color: #3fb950;
-}
-
-.status-indicator.connecting {
-  color: #d29922;
-}
-
-.status-indicator.disconnected {
-  color: #f85149;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.status-indicator.connected .status-dot {
-  animation: pulse 2s infinite;
-}
-
-.status-indicator.connecting .status-dot {
-  animation: blink 1s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.reconnect-btn {
-  background: transparent;
-  border: 1px solid #30363d;
-  color: #7d8590;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.reconnect-btn:hover:not(:disabled) {
-  background: #21262d;
-  color: #e6edf3;
-  border-color: #484f58;
-}
-
-.reconnect-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.terminal-content {
-  padding: 0.4rem;
-  flex: 1;
-  overflow: hidden;
-  background: #0d1117;
-}
-
-/* Override xterm.js styles to match our theme */
-:deep(.xterm) {
-  height: 100% !important;
-  width: 100% !important;
-}
-
-:deep(.xterm .xterm-viewport) {
-  background: #0d1117 !important;
-}
-
-:deep(.xterm .xterm-screen) {
-  background: #0d1117 !important;
-}
-
-:deep(.xterm-cursor-layer .xterm-cursor) {
-  background: #e6edf3 !important;
-  color: #0d1117 !important;
-}
-
-:deep(.xterm .xterm-selection div) {
-  background: rgba(31, 111, 235, 0.3) !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .terminal-header {
-    padding: 0.375rem 0.5rem;
-    min-height: 36px;
-  }
-  
-  .terminal-title {
-    display: none;
-  }
-  
-  .control-dot {
-    width: 10px;
-    height: 10px;
-  }
-  
-  .status-indicator {
-    font-size: 0.6875rem;
-  }
-  
-  .reconnect-btn {
-    padding: 0.1875rem 0.375rem;
-    font-size: 0.75rem;
-  }
-}
-</style>

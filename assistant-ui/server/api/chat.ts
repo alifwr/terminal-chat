@@ -5,20 +5,22 @@ import { experimental_createMCPClient as createMCPClient } from 'ai';
 
 
 export default defineLazyEventHandler(async () => {
-  //   const apiKey = useRuntimeConfig().openaiApiKey;
-  const apiKey = "mari_kita_berbuat_baik";
-  const baseUrl = "http://10.8.0.86:9007/v1";
+  const config = useRuntimeConfig();
+  const apiKey = config.openApiKey;
+  const vllmUrl = config.vllmUrl;
+  const mcpUrl = config.mcpUrl;
+
   if (!apiKey) throw new Error('Missing OpenAI API key');
   const openai = createOpenAI({
     apiKey: apiKey,
-    baseURL: baseUrl
+    baseURL: vllmUrl
   });
 
   const mcpClient = await createMCPClient({
     transport: {
       type: 'sse',
-      url: 'http://terminal-mcp:8000/sse',
-      // url: 'http://localhost:8000/sse',
+      // url: 'http://terminal-mcp:8000/sse',
+      url: mcpUrl,
     },
   });
 

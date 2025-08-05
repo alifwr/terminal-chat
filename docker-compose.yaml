@@ -1,12 +1,12 @@
 services:
-  assistant-ui:
-    build: ./assistant-ui
-    container_name: pentesting-assist-ui
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
-    networks:
-      - kali_network
+  # assistant-ui:
+  #   build: ./assistant-ui
+  #   container_name: pentesting-assist-ui
+  #   ports:
+  #     - "3000:3000"
+  #   restart: unless-stopped
+  #   networks:
+  #     - kali_network
   
   terminal-mcp:
     build: ./terminal-mcp

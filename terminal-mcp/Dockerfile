@@ -32,7 +32,6 @@ WORKDIR /app
 COPY package*.json .
 
 # Install dependencies
-RUN which npm
 RUN npm install
 
 # # Create startup script

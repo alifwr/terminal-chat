@@ -2,6 +2,8 @@
 import { useChat } from '@ai-sdk/vue';
 import { ref, nextTick, onMounted } from 'vue';
 
+const config = useRuntimeConfig();
+const terminalUrl = config.websocketUrl;
 const { messages, input, status, handleSubmit } = useChat({ maxSteps: 5 });
 const messagesContainer = ref<HTMLElement>();
 const sessionId = ref(null);
@@ -37,52 +39,66 @@ const toggleToolInvocation = (index: number) => {
 </script>
 
 <template>
-  <div class="main-container">
+  <div class="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
     <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <h1 class="title">AI Terminal</h1>
-        <div class="status">
-          <div class="status-dot"></div>
+    <header class="bg-gray-800 border-b border-gray-700 py-4 px-6 flex-shrink-0 max-md:py-3 max-md:px-4">
+      <div class="flex items-center justify-between max-w-6xl mx-auto max-md:flex-col max-md:gap-2 max-md:text-center">
+        <h1 class="text-xl font-semibold text-gray-100">AI Terminal</h1>
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <span>Online</span>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <div class="content-grid">
+    <div class="grid grid-cols-2 gap-px bg-gray-700 flex-1 overflow-hidden max-md:grid-cols-1 max-md:grid-rows-2">
       <!-- Chat Section -->
-      <div class="chat-section">
-        <div class="section-header">
-          <h2>AI Assistant</h2>
+      <div class="flex flex-col bg-gray-900 overflow-hidden">
+        <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex-shrink-0">
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-500">AI Assistant</h2>
         </div>
 
-        <div ref="messagesContainer" class="messages">
-          <div v-if="messages.length === 0" class="welcome-message">
-            <h3>Ready for input</h3>
-            <p>Start a conversation with the AI assistant</p>
+        <div ref="messagesContainer" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 max-md:p-3">
+          <div v-if="messages.length === 0" class="text-center py-8 text-gray-500">
+            <h3 class="text-lg font-semibold text-gray-200 mb-2">Ready for input</h3>
+            <p class="text-sm">Start a conversation with the AI assistant</p>
           </div>
 
-          <div v-for="m in messages" :key="m.id" :class="['message', m.role]">
-            <div class="message-avatar">
+          <div v-for="m in messages" :key="m.id"
+            :class="['flex gap-3 max-w-[85%] max-md:max-w-[95%]', m.role === 'user' ? 'self-end flex-row-reverse' : '']">
+            <div :class="[
+              'w-8 h-8 rounded flex-shrink-0 flex items-center justify-center text-xs font-semibold',
+              m.role === 'user'
+                ? 'bg-gray-700 text-gray-400 border border-gray-600'
+                : 'bg-gray-800 text-gray-500 border border-gray-700'
+            ]">
               {{ m.role === 'user' ? 'U' : 'AI' }}
             </div>
-            <div class="message-content">
-              <div class="message-header">
-                <span class="sender">{{ m.role === 'user' ? 'You' : 'Assistant' }}</span>
-                <span class="timestamp">{{ getTimeStamp() }}</span>
+            <div :class="[
+              'flex-1 border rounded-lg p-3',
+              m.role === 'user'
+                ? 'bg-gray-700 border-gray-600'
+                : 'bg-gray-800 border-gray-700'
+            ]">
+              <div class="flex justify-between items-center mb-2 text-xs">
+                <span class="font-semibold text-gray-200">{{ m.role === 'user' ? 'You' : 'Assistant' }}</span>
+                <span class="text-gray-500">{{ getTimeStamp() }}</span>
               </div>
-              <div class="message-text">
+              <div class="text-sm leading-relaxed">
                 <div v-for="(part, partIndex) in m.parts" :key="partIndex">
-                  <div v-if="part.type === 'text'" class="text-part">{{ part.text }}</div>
-                  <div v-if="part.type === 'tool-invocation'" class="tool-part">
-                    <div class="tool-header" @click="toggleToolInvocation(partIndex)">
-                      <div class="tool-label">Process</div>
-                      <div class="tool-toggle">
+                  <div v-if="part.type === 'text'" class="mb-2 last:mb-0">{{ part.text }}</div>
+                  <div v-if="part.type === 'tool-invocation'"
+                    class="bg-gray-900 border border-gray-800 rounded p-3 my-2">
+                    <div class="flex justify-between items-center cursor-pointer select-none"
+                      @click="toggleToolInvocation(partIndex)">
+                      <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Process</div>
+                      <div class="text-xs text-gray-500 transition-colors hover:text-gray-200">
                         {{ expandedToolInvocations[`${messages.length}-${partIndex}`] ? '▼' : '▶' }}
                       </div>
                     </div>
-                    <pre v-if="expandedToolInvocations[`${messages.length}-${partIndex}`]">{{ part.toolInvocation }}</pre>
+                    <pre v-if="expandedToolInvocations[`${messages.length}-${partIndex}`]"
+                      class="text-xs whitespace-pre-wrap break-words font-mono">{{ part.toolInvocation }}</pre>
                   </div>
                 </div>
               </div>
@@ -90,11 +106,21 @@ const toggleToolInvocation = (index: number) => {
           </div>
         </div>
 
-        <form @submit.prevent="handleFormSubmit" class="input-form">
-          <div class="input-container">
-            <input v-model="input" placeholder="Type your message..." class="input-field" :class="{ 'loading': status === 'streaming' }" autocomplete="off" :disabled="status==='streaming'" />
+        <form @submit.prevent="handleFormSubmit"
+          class="p-4 border-t border-gray-700 bg-gray-800 flex-shrink-0 max-md:p-3">
+          <div class="flex gap-2">
+            <input v-model="input" placeholder="Type your message..." :class="[
+              'flex-1 px-3 py-2 text-sm border border-gray-700 rounded bg-gray-900 text-gray-200 outline-none transition-colors',
+              status === 'streaming' ? 'bg-gradient-loading bg-size-200 animate-pulse-bg' : '',
+              'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+            ]" autocomplete="off" :disabled="status === 'streaming'" />
 
-            <button type="submit" class="send-button" :disabled="!input.trim()">
+            <button type="submit" :disabled="!input.trim()" :class="[
+              'w-9 h-9 rounded flex items-center justify-center transition-colors',
+              input.trim()
+                ? 'bg-gray-700 border border-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
+                : 'bg-gray-800 border border-gray-700 text-gray-600 cursor-not-allowed'
+            ]">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
               </svg>
@@ -104,16 +130,16 @@ const toggleToolInvocation = (index: number) => {
       </div>
 
       <!-- Terminal Section -->
-      <div class="terminal-section">
-        <div class="section-header">
-          <h2>Terminal</h2>
+      <div class="flex flex-col bg-gray-900 overflow-hidden max-md:order-first">
+        <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex-shrink-0">
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Terminal</h2>
         </div>
 
-        <div class="terminal-wrapper">
+        <div class="flex-1 flex flex-col overflow-hidden m-4 border border-gray-700 rounded bg-gray-900 max-md:m-3">
           <ClientOnly>
-            <XTerminal server-url="http://mcp-terminal:8080" @session-id-received="sessionId = $event" />
+            <XTerminal :server-url="terminalUrl" @session-id-received="sessionId = $event" />
             <template #fallback>
-              <div class="terminal-loading">
+              <div class="flex-1 flex items-center justify-center text-gray-500 text-sm">
                 <p>Loading terminal...</p>
               </div>
             </template>
@@ -123,416 +149,3 @@ const toggleToolInvocation = (index: number) => {
     </div>
   </div>
 </template>
-
-<style>
-body {
-  margin: 0px;
-}
-
-.main-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #0d1117;
-  color: #e6edf3;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
-}
-
-.header {
-  background: #161b22;
-  border-bottom: 1px solid #30363d;
-  padding: 1rem 1.5rem;
-  flex-shrink: 0;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #f0f6fc;
-}
-
-.status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  color: #7d8590;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  background: #3fb950;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  flex: 1;
-  background: #30363d;
-  overflow: hidden;
-}
-
-.chat-section,
-.terminal-section {
-  background: #0d1117;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.section-header {
-  background: #161b22;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #30363d;
-  flex-shrink: 0;
-}
-
-.section-header h2 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0;
-  color: #7d8590;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.messages::-webkit-scrollbar {
-  width: 8px;
-}
-
-.messages::-webkit-scrollbar-track {
-  background: #161b22;
-}
-
-.messages::-webkit-scrollbar-thumb {
-  background: #30363d;
-  border-radius: 4px;
-}
-
-.messages::-webkit-scrollbar-thumb:hover {
-  background: #484f58;
-}
-
-.welcome-message {
-  text-align: center;
-  padding: 2rem;
-  color: #7d8590;
-}
-
-.welcome-message h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: #e6edf3;
-}
-
-.welcome-message p {
-  margin: 0;
-  font-size: 0.875rem;
-}
-
-.message {
-  display: flex;
-  gap: 0.75rem;
-  max-width: 85%;
-  animation: slideIn 0.3s ease-out;
-}
-
-.message.user {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.message-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #21262d;
-  border: 1px solid #30363d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #7d8590;
-  flex-shrink: 0;
-}
-
-.message.user .message-avatar {
-  background: #1f2937;
-  color: #9ca3af;
-}
-
-.message-content {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 0.75rem;
-  flex: 1;
-}
-
-.message.user .message-content {
-  background: #1f2937;
-  border-color: #374151;
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 0.75rem;
-}
-
-.sender {
-  font-weight: 600;
-  color: #e6edf3;
-}
-
-.timestamp {
-  color: #7d8590;
-}
-
-.message-text {
-  line-height: 1.5;
-  font-size: 0.875rem;
-}
-
-.text-part {
-  margin-bottom: 0.5rem;
-}
-
-.text-part:last-child {
-  margin-bottom: 0;
-}
-
-.tool-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.tool-toggle {
-  font-size: 0.75rem;
-  color: #7d8590;
-  transition: color 0.2s ease;
-}
-
-.tool-header:hover .tool-toggle {
-  color: #e6edf3;
-}
-
-.tool-part {
-  background: #0d1117;
-  border: 1px solid #21262d;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin: 0.5rem 0;
-}
-
-.tool-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #7d8590;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-
-.tool-part pre {
-  font-size: 0.8125rem;
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-}
-
-.input-form {
-  padding: 1rem;
-  border-top: 1px solid #30363d;
-  background: #161b22;
-  flex-shrink: 0;
-}
-
-.input-container {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.input-field {
-  flex: 1;
-  padding: 0.75rem;
-  font-size: 0.875rem;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  background: #0d1117;
-  color: #e6edf3;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.input-field:focus {
-  border-color: #1f6feb;
-  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
-}
-
-.input-field::placeholder {
-  color: #7d8590;
-}
-
-.input-field.loading {
-  background-image: linear-gradient(90deg, transparent 0%, #30363d 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: loading 1.5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes loading {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: -100% 0;
-  }
-}
-
-.send-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  border: 1px solid #30363d;
-  background: #21262d;
-  color: #7d8590;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.send-button:hover:not(:disabled) {
-  background: #30363d;
-  color: #e6edf3;
-}
-
-.send-button:disabled {
-  background: #161b22;
-  color: #484f58;
-  cursor: not-allowed;
-}
-
-.terminal-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  margin: 1rem;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  background: #0d1117;
-}
-
-.terminal-loading {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7d8590;
-  font-size: 0.875rem;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
-  }
-
-  .terminal-section {
-    order: -1;
-  }
-}
-
-@media (max-width: 768px) {
-  .header {
-    padding: 0.75rem 1rem;
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
-  }
-
-  .messages {
-    padding: 0.75rem;
-  }
-
-  .message {
-    max-width: 95%;
-  }
-
-  .input-form {
-    padding: 0.75rem;
-  }
-
-  .terminal-wrapper {
-    margin: 0.75rem;
-  }
-}
-
-/* Dark scrollbar for webkit browsers */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #30363d #161b22;
-}
-</style>
