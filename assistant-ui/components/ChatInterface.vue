@@ -100,7 +100,10 @@ onMounted(scrollToBottom);
 const handleFormSubmit = (e: Event) => {
   handleSubmit(e, {
     data: {
-      sessionId: sessionId.value
+      sessionId: sessionId.value,
+      apiKey: "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",
+      baseUrl: "http://10.8.0.86:9007/v1",
+      model: "aliframadhan/Qwen3-8B-Tool-Calling"
     }
   });
   scrollToBottom();

@@ -12,8 +12,10 @@ services:
     build: ./terminal-mcp
     container_name: pentesting-assist-terminal
     ports:
-      - "8080:8080"  # Web terminal server
-      - "8000:8000"  # MCP server via supergateway
+      - "9020:8080"
+      - "9021:5900"
+      - "8000:8000"
+      - "8080:8090"
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -24,30 +26,6 @@ services:
     networks:
       - kali_network
     
-  # kali-host:
-  #   build: ./kali-host
-  #   container_name: pentesting-assist-kali
-  #   ports:
-  #     - "2222:22"      # SSH access
-  #   environment:
-  #     - TERM=xterm-256color
-  #   tty: true
-  #   stdin_open: true
-  #   restart: unless-stopped
-  #   cap_add:
-  #   - NET_ADMIN
-  #   - NET_RAW
-  
-
-#     networks:
-#       - kali_network
-
-# volumes:
-#   kali_home:
-#     driver: local
-#   kali_root:
-#     driver: local
-
 networks:
   kali_network:
     driver: bridge

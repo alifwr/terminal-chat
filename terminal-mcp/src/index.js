@@ -39,13 +39,13 @@ class UnifiedTerminalServer {
     await this.mcpServer.start();
   }
 
-  async startWebTerminal(port = 8080) {
+  async startWebTerminal(port = 8090) {
     console.log(`🌐 Starting Web Terminal Server on port ${port}...`);
     this.webTerminalServer = new WebTerminalServer(port);
     await this.webTerminalServer.start();
   }
 
-  async startBoth(webPort = 8080) {
+  async startBoth(webPort = 8090) {
     console.log('🚀 Starting both MCP and Web Terminal servers...');
     
     // Start Web Terminal first
@@ -77,7 +77,7 @@ program
 program
   .command('web')
   .description('Start only the Web Terminal server')
-  .option('-p, --port <port>', 'Port for web terminal server', '8080')
+  .option('-p, --port <port>', 'Port for web terminal server', '8090')
   .action(async (options) => {
     const server = new UnifiedTerminalServer();
     await server.startWebTerminal(parseInt(options.port));
@@ -86,7 +86,7 @@ program
 program
   .command('both')
   .description('Start both MCP and Web Terminal servers')
-  .option('-p, --port <port>', 'Port for web terminal server', '8080')
+  .option('-p, --port <port>', 'Port for web terminal server', '8090')
   .action(async (options) => {
     const server = new UnifiedTerminalServer();
     await server.startBoth(parseInt(options.port));
@@ -116,12 +116,12 @@ if (process.argv.length === 2) {
   } else if (args.includes('--web')) {
     const server = new UnifiedTerminalServer();
     const portIndex = args.indexOf('--port');
-    const port = portIndex !== -1 ? parseInt(args[portIndex + 1]) : 8080;
+    const port = portIndex !== -1 ? parseInt(args[portIndex + 1]) : 8090;
     server.startWebTerminal(port);
   } else if (args.includes('--both')) {
     const server = new UnifiedTerminalServer();
     const portIndex = args.indexOf('--port');
-    const port = portIndex !== -1 ? parseInt(args[portIndex + 1]) : 8080;
+    const port = portIndex !== -1 ? parseInt(args[portIndex + 1]) : 8090;
     server.startBoth(port);
   } else {
     program.parse();

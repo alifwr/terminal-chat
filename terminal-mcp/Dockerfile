@@ -21,9 +21,26 @@ RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-f
     sudo \
     nano \
     nodejs \
-    procps \
+    procps
+
+RUN apt install -y \
+    kali-desktop-xfce \
+    kali-linux-large \
+    tightvncserver \
+    net-tools \
+    dbus-x11 \
+    novnc \
+    dbus \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
+
+ENV USER=root
+ENV VNCEXPOSE=0
+ENV VNCPORT=5900
+ENV VNCPWD=changeme
+ENV VNCDISPLAY=1200x680
+ENV VNCDEPTH=16
+ENV NOVNCPORT=8080
 
 # Create app directory
 WORKDIR /app
@@ -34,31 +51,28 @@ COPY package*.json .
 # Install dependencies
 RUN npm install
 
-# # Create startup script
-# COPY start.sh /usr/local/bin/start.sh
-# RUN chmod +x /usr/local/bin/start.sh
-
 # Create a non-root user for better security
-RUN useradd -m -s /bin/bash kaliuser && \
-    echo "kaliuser:kaliuser" | chpasswd && \
-    usermod -aG sudo kaliuser && \
-    echo "kaliuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# RUN useradd -m -s /bin/bash kaliuser && \
+#     echo "kaliuser:kaliuser" | chpasswd && \
+#     usermod -aG sudo kaliuser && \
+#     echo "kaliuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Copy source code
 COPY . .
 
 # Create a non-root user
-USER kaliuser
+# USER kaliuser
 
 # Expose ports
-EXPOSE 22 8080 8000
+EXPOSE 22 8090 8000 5900 8080
 
 RUN which npm
 RUN ls /app/package.json
 
-# Set the entrypoint
-# ENTRYPOINT ["/usr/local/bin/start.sh"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
 
 # # Start command
-CMD ["npm", "start"]
+# CMD ["npm", "start"]
 # CMD ["npx", "-y", "supergateway", "--stdio", "\"node", "src/index.js", "--both\"", "--port", "8000", "--baseUrl", "http://localhost:8000", "--ssePath", "/sse", "--messagePath", "/message"]

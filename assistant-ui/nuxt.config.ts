@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     mcpUrl: process.env.MCP_URL,
     vllmUrl: process.env.VLLM_URL,
     websocketUrl: process.env.WEBSOCKET_URL,
+    vmUrl: process.env.VM_URL,
 
     public: {
     }
