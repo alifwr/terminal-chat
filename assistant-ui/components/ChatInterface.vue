@@ -2,20 +2,11 @@
 <template>
     <div class="h-full flex flex-col">
         <!-- Messages Area -->
-        <div class="flex-1 overflow-auto space-y-3 mb-4">
+        <div ref="messagesContainer" class="flex-1 overflow-auto space-y-3 mb-4">
             <div v-for="m in messages" :key="m.id" :class="[
                 'flex',
                 m.role === 'user' ? 'justify-end' : 'justify-start'
             ]">
-                <!-- <div :class="[
-                    'w-8 h-8 rounded flex-shrink-0 flex items-center justify-center text-xs font-semibold',
-                    m.role === 'user'
-                        ? 'bg-gray-700 text-gray-400 border border-gray-600'
-                        : 'bg-gray-800 text-gray-500 border border-gray-700'
-                ]">
-                    {{ m.role === 'user' ? 'U' : 'AI' }}
-                </div> -->
-
                 <div :class="[
                     'max-w-xs p-3 rounded-lg text-sm',
                     m.role === 'user'
@@ -26,7 +17,7 @@
                     <div v-for="(part, partIndex) in m.parts" :key="partIndex">
                         <div v-if="part.type === 'text'" class="mb-2 last:mb-0">{{ part.text }}</div>
                         <div v-if="part.type === 'tool-invocation'"
-                            class="bg-gray-900 border border-gray-800 rounded p-3 my-2">
+                            class="bg-gray-100 border border-gray-200 rounded p-3 my-2">
                             <div class="flex justify-between items-center cursor-pointer select-none"
                                 @click="toggleToolInvocation(partIndex)">
                                 <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Process
@@ -40,8 +31,6 @@
                         </div>
                     </div>
 
-                    <!-- <div class="mb-1">{{ m.content }}</div> -->
-
                     <div :class="[
                         'text-xs',
                         m.role === 'user' ? 'text-blue-200' : 'text-gray-500'
@@ -52,19 +41,6 @@
 
                 </div>
             </div>
-
-            <!-- Typing Indicator -->
-            <div v-if="isTyping" class="flex justify-start">
-                <div class="bg-gray-200 text-gray-800 p-3 rounded-lg rounded-bl-none">
-                    <div class="flex space-x-1">
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s">
-                        </div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s">
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Input Area -->
@@ -72,11 +48,13 @@
             <form @submit.prevent="handleFormSubmit" class="flex space-x-2">
                 <input v-model="input" type="text" placeholder="Type your message..."
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    :class="{ 'loading': status === 'streaming' }" autocomplete="off"
-                    :disabled="status === 'streaming'" />
+                    :class="{ 'bg-gradient-loading bg-size-200 animate-pulse-bg': status === 'streaming' }"
+                    autocomplete="off" :disabled="status === 'streaming'" />
                 <button type="submit" :disabled="!input.trim()"
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm">
-                    Send
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                    </svg>
                 </button>
             </form>
         </div>
@@ -87,14 +65,18 @@
 import { useChat } from '@ai-sdk/vue';
 import { ref, nextTick, onMounted } from 'vue';
 
-const modelConfig = useModelConfig();
+const {
+    modelName,
+    baseUrl,
+    apiKey,
+    temperature,
+    maxTokens,
+} = useModelConfig();
 const { sessionId } = useTerminalSession();
 
 const { messages, input, status, handleSubmit } = useChat({ maxSteps: 5 });
 const messagesContainer = ref<HTMLElement>();
 const expandedToolInvocations = ref<Record<string, boolean>>({});
-
-const isTyping = ref(false);
 
 const scrollToBottom = () => {
     nextTick(() => {
@@ -104,17 +86,23 @@ const scrollToBottom = () => {
     });
 };
 
+watch(status, () => {
+    console.log("STATUS: ", status.value)
+})
+
 onMounted(() => {
     scrollToBottom();
-})
+});
 
 const handleFormSubmit = (e: Event) => {
     handleSubmit(e, {
         data: {
             sessionId: sessionId.value,
-            apiKey: modelConfig.apiKey.value,
-            baseUrl: modelConfig.baseUrl.value,
-            model: modelConfig.modelName.value
+            apiKey: apiKey.value,
+            baseUrl: baseUrl.value,
+            model: modelName.value,
+            temperature: temperature.value,
+            maxTokens: maxTokens.value
         }
     });
     scrollToBottom();
@@ -129,12 +117,3 @@ const toggleToolInvocation = (index: number) => {
     expandedToolInvocations.value[key] = !expandedToolInvocations.value[key];
 };
 </script>
-
-<style>
-.loading {
-    background-image: linear-gradient(90deg, transparent 0%, #30363d 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: loading 1.5s ease-in-out infinite;
-    pointer-events: none;
-}
-</style>

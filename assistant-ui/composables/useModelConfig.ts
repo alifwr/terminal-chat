@@ -16,12 +16,12 @@ export const useModelConfig = () => {
   const serverConfigData = useState('model-config-data', loadConfigOnServer);
 
   // Create reactive refs with explicit typing and proper defaults
-  const isLoading = ref<boolean>(true);
-  const modelName = ref<string>(String(serverConfigData.value.modelName || ''));
-  const baseUrl = ref<string>(String(serverConfigData.value.baseUrl || ''));
-  const temperature = ref<number>(Number(serverConfigData.value.temperature || 0.2));
-  const maxTokens = ref<number>(Number(serverConfigData.value.maxTokens || 32768));
-  const apiKey = ref<string>(String(serverConfigData.value.apiKey || '')); // Add this
+  const isLoading = useState<boolean>('isLoading', () => true);
+  const modelName = useState<string>('modelName', () => String(serverConfigData.value.modelName || ''));
+  const baseUrl = useState<string>('baseUrl', () => String(serverConfigData.value.baseUrl || ''));
+  const temperature = useState<number>('temperature', () => Number(serverConfigData.value.temperature || 0.0));
+  const maxTokens = useState<number>('maxTokens', () => Number(serverConfigData.value.maxTokens || 32768));
+  const apiKey = useState<string>('apiKey', () => String(serverConfigData.value.apiKey || ''));
 
   // localStorage management
   const STORAGE_KEY = 'model-config';

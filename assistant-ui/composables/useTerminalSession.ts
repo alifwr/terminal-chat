@@ -4,7 +4,6 @@ export const useTerminalSession = () => {
     const updateSession = (newSessionId: string) => {
         if (process.client) {
             sessionId.value = newSessionId;
-            console.log("SESSION COMPOSE: ", sessionId);
         }
     }
 
