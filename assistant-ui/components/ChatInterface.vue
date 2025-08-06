@@ -88,10 +88,10 @@ import { useChat } from '@ai-sdk/vue';
 import { ref, nextTick, onMounted } from 'vue';
 
 const modelConfig = useModelConfig();
+const { sessionId } = useTerminalSession();
 
 const { messages, input, status, handleSubmit } = useChat({ maxSteps: 5 });
 const messagesContainer = ref<HTMLElement>();
-const sessionId = ref(null);
 const expandedToolInvocations = ref<Record<string, boolean>>({});
 
 const isTyping = ref(false);

@@ -3,10 +3,10 @@ import { useChat } from '@ai-sdk/vue';
 import { ref, nextTick, onMounted } from 'vue';
 
 const config = useRuntimeConfig();
+const { sessionId, updateSession } = useTerminalSession();
 const terminalUrl = config.websocketUrl;
 const { messages, input, status, handleSubmit } = useChat({ maxSteps: 5 });
 const messagesContainer = ref<HTMLElement>();
-const sessionId = ref(null);
 const expandedToolInvocations = ref<Record<string, boolean>>({});
 
 const scrollToBottom = () => {
@@ -17,7 +17,9 @@ const scrollToBottom = () => {
   });
 };
 
-onMounted(scrollToBottom);
+onMounted(() => {
+  scrollToBottom();
+});
 
 const handleFormSubmit = (e: Event) => {
   handleSubmit(e, {
@@ -137,7 +139,7 @@ const toggleToolInvocation = (index: number) => {
 
         <div class="flex-1 flex flex-col overflow-hidden m-4 border border-gray-700 rounded bg-gray-900 max-md:m-3">
           <ClientOnly>
-            <XTerminal :server-url="terminalUrl" @session-id-received="sessionId = $event" />
+            <XTerminal :server-url="terminalUrl" />
             <template #fallback>
               <div class="flex-1 flex items-center justify-center text-gray-500 text-sm">
                 <p>Loading terminal...</p>

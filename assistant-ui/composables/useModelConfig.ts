@@ -88,7 +88,7 @@ export const useModelConfig = () => {
     baseUrl,
     temperature,
     maxTokens,
-    apiKey, // Add this
+    apiKey,
     
     // Methods
     loadFromLocalStorage,

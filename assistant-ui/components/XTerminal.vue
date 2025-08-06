@@ -9,20 +9,17 @@
         <div :class="[
           'flex items-center gap-1.5 text-xs font-medium',
           connectionStatus === 'connected' ? 'text-green-500' :
-          connectionStatus === 'connecting' ? 'text-yellow-500' : 'text-red-500'
+            connectionStatus === 'connecting' ? 'text-yellow-500' : 'text-red-500'
         ]">
           <div :class="[
             'w-1.5 h-1.5 rounded-full',
             connectionStatus === 'connected' ? 'bg-green-500 animate-pulse' :
-            connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
+              connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
           ]"></div>
           <span>{{ getStatusText() }}</span>
         </div>
-        <button
-          @click="reconnect"
-          :disabled="connectionStatus === 'connecting'"
-          class="border border-gray-700 text-gray-500 px-2 py-1 rounded text-sm transition-all hover:bg-gray-700 hover:text-gray-200 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button @click="reconnect" :disabled="connectionStatus === 'connecting'"
+          class="border border-gray-700 text-gray-500 px-2 py-1 rounded text-sm transition-all hover:bg-gray-700 hover:text-gray-200 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
           ↻
         </button>
       </div>
@@ -44,8 +41,7 @@ const props = defineProps({
 const terminalContainer = ref(null)
 const connectionStatus = ref('disconnected')
 
-const sessionId = ref(null)
-const emit = defineEmits(['sessionIdReceived'])
+const { sessionId, updateSession } = useTerminalSession();
 let terminal = null
 let fitAddon = null
 let socket = null
@@ -65,11 +61,11 @@ const connectSocket = async () => {
   }
 
   connectionStatus.value = 'connecting'
-  
+
   try {
     // Dynamic import for client-side only
     const { io } = await import('socket.io-client')
-    
+
     socket = io(props.serverUrl, {
       transports: ['websocket', 'polling'],
       timeout: 5000
@@ -91,9 +87,7 @@ const connectSocket = async () => {
     })
 
     socket.on('terminal.pid', (data) => {
-sessionId.value = data
-      emit('sessionIdReceived', data)
-      console.log("PID: ", data)
+      updateSession(data);
     })
 
     // Listen for terminal data from server
@@ -115,10 +109,10 @@ const setupTerminal = async () => {
     // Dynamic imports for client-side only
     const { Terminal } = await import('xterm')
     const { FitAddon } = await import('@xterm/addon-fit')
-    
+
     // Import CSS
     await import('xterm/css/xterm.css')
-    
+
     // Create terminal instance
     terminal = new Terminal({
       cursorBlink: true,
@@ -148,51 +142,51 @@ const setupTerminal = async () => {
       },
       allowTransparency: false
     })
-    
+
     // Create and load fit addon
     fitAddon = new FitAddon()
     terminal.loadAddon(fitAddon)
-    
+
     // Open terminal in container
     terminal.open(terminalContainer.value)
-    
+
     // Fit terminal to container
     fitAddon.fit()
-    
+
     // Handle user input - send keystrokes to server
     terminal.onData(data => {
       if (socket && socket.connected) {
         socket.emit('terminal.keystroke', data)
       }
     })
-    
+
     // Handle terminal resize
     terminal.onResize(({ cols, rows }) => {
       if (socket && socket.connected) {
         socket.emit('terminal.resize', { cols, rows })
       }
     })
-    
+
     // Handle window resize
     const handleResize = () => {
       if (fitAddon) {
         fitAddon.fit()
       }
     }
-    
+
     window.addEventListener('resize', handleResize)
-    
+
     // Setup resize observer for container changes
     const resizeObserver = new ResizeObserver(() => {
       if (fitAddon) {
         setTimeout(() => fitAddon.fit(), 100)
       }
     })
-    
+
     if (terminalContainer.value) {
       resizeObserver.observe(terminalContainer.value)
     }
-    
+
     // Return cleanup functions
     return () => {
       window.removeEventListener('resize', handleResize)
@@ -200,7 +194,7 @@ const setupTerminal = async () => {
     }
   } catch (error) {
     console.error('Failed to setup terminal:', error)
-    return () => {}
+    return () => { }
   }
 }
 
@@ -227,4 +221,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
