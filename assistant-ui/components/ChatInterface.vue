@@ -65,13 +65,13 @@
 import { useChat } from '@ai-sdk/vue';
 import { ref, nextTick, onMounted } from 'vue';
 
-const {
-    modelName,
-    baseUrl,
-    apiKey,
-    temperature,
-    maxTokens,
-} = useModelConfig();
+// const {
+//     modelName,
+//     baseUrl,
+//     apiKey,
+//     temperature,
+//     maxTokens,
+// } = useModelConfig();
 const { sessionId } = useTerminalSession();
 
 const { messages, input, status, handleSubmit } = useChat({ maxSteps: 5 });
@@ -98,11 +98,11 @@ const handleFormSubmit = (e: Event) => {
     handleSubmit(e, {
         data: {
             sessionId: sessionId.value,
-            apiKey: apiKey.value,
-            baseUrl: baseUrl.value,
-            model: modelName.value,
-            temperature: temperature.value,
-            maxTokens: maxTokens.value
+            // apiKey: apiKey.value,
+            // baseUrl: baseUrl.value,
+            // model: modelName.value,
+            // temperature: temperature.value,
+            // maxTokens: maxTokens.value
         }
     });
     scrollToBottom();

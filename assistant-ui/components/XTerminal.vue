@@ -41,7 +41,7 @@ const props = defineProps({
 const terminalContainer = ref(null)
 const connectionStatus = ref('disconnected')
 
-const { sessionId, updateSession } = useTerminalSession();
+const { sessionId } = useTerminalSession();
 let terminal = null
 let fitAddon = null
 let socket = null
@@ -87,7 +87,7 @@ const connectSocket = async () => {
     })
 
     socket.on('terminal.pid', (data) => {
-      updateSession(data);
+      sessionId.value = data;
     })
 
     // Listen for terminal data from server

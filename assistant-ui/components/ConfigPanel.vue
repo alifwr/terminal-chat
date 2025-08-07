@@ -34,15 +34,15 @@
 <script setup>
 import { ref } from 'vue'
 
-const activeTopTab = ref('pentest')
+// const activeTopTab = ref('pentest')
 const activeConfigTab = ref('model')
 
-const topTabs = [
-    { id: 'pentest', name: 'Pentest', color: 'blue' },
-    { id: 'teacher', name: 'Teacher', color: 'green' },
-    { id: 'basic', name: 'Basic', color: 'purple' },
-    { id: 'agent', name: 'Agent', color: 'orange' }
-]
+// const topTabs = [
+//     { id: 'pentest', name: 'Pentest', color: 'blue' },
+//     { id: 'teacher', name: 'Teacher', color: 'green' },
+//     { id: 'basic', name: 'Basic', color: 'purple' },
+//     { id: 'agent', name: 'Agent', color: 'orange' }
+// ]
 
 const configTabs = [
     { id: 'model', name: 'Model Config', color: 'blue' },
