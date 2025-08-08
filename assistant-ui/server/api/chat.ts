@@ -77,6 +77,7 @@ export default defineLazyEventHandler(async () => {
       if (result.usage) {
         console.log(`Token usage - prompt: ${result.usage.promptTokens}, completion: ${result.usage.completionTokens}`);
       }
+      console.log(`Response text: ${result.text}`);
 
       // Return the complete response as JSON
       return new Response(

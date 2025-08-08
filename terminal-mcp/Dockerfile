@@ -8,7 +8,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
     apt clean && \
     apt update --fix-missing && \
-    apt install -y --no-install-recommends \
+    apt full-upgrade -y
+
+RUN apt install -y --no-install-recommends \
     kali-linux-headless \
     build-essential \
     openssh-server \
@@ -25,7 +27,7 @@ RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-f
 
 RUN apt install -y \
     kali-desktop-xfce \
-    kali-linux-large \
+    kali-linux-default \
     tightvncserver \
     net-tools \
     dbus-x11 \
@@ -52,27 +54,21 @@ COPY package*.json .
 RUN npm install
 
 # Create a non-root user for better security
-# RUN useradd -m -s /bin/bash kaliuser && \
-#     echo "kaliuser:kaliuser" | chpasswd && \
-#     usermod -aG sudo kaliuser && \
-#     echo "kaliuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN useradd -m -s /bin/bash kali && \
+    echo "kali:kali" | chpasswd && \
+    usermod -aG sudo kali && \
+    echo "kali ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Copy source code
 COPY . .
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Create a non-root user
-# USER kaliuser
+# USER kali
 
 # Expose ports
 EXPOSE 22 8090 8000 5900 8080
 
-RUN which npm
-RUN ls /app/package.json
-
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
-
-# # Start command
-# CMD ["npm", "start"]
-# CMD ["npx", "-y", "supergateway", "--stdio", "\"node", "src/index.js", "--both\"", "--port", "8000", "--baseUrl", "http://localhost:8000", "--ssePath", "/sse", "--messagePath", "/message"]

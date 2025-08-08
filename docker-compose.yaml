@@ -21,10 +21,25 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       - NODE_ENV=production
+    privileged: true
     stdin_open: true
     tty: true
     networks:
       - kali_network
+
+  target:
+    image: kalilinux/kali-rolling
+    container_name: pentesting-assist-target
+    ports:
+      - "8081:80"
+      - "8082:443"
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    stdin_open: true
+    tty: true
+    networks:
+      - kali_network  
     
 networks:
   kali_network:

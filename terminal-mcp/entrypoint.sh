@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Run initial setup as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Entrypoint must run as root for initial setup"
+  exit 1
+fi
+
 # Set password for VNC
 mkdir -p /root/.vnc/
 echo $VNCPWD | vncpasswd -f > /root/.vnc/passwd
@@ -38,6 +44,5 @@ echo "Launch your web browser and open https://localhost:9020/vnc.html"
 echo "Verify the certificate fingerprint:"
 openssl x509 -in /etc/ssl/certs/novnc_cert.pem -noout -fingerprint -sha256
 
-# Start MCP Terminal
-cd /app && npm start
-# /bin/bash
+# Switch to kali user and start MCP Terminal
+su - kali -c "cd /app && npm start"

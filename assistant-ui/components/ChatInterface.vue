@@ -216,7 +216,7 @@ const handleSubmit = async (userMessage: string) => {
         // Set up request timeout
         timeoutId = setTimeout(() => {
             controller.abort();
-        }, 300000); // 5 minutes
+        }, 600000); // 5 minutes
         
         const requestBody = {
             messages: messages.value
