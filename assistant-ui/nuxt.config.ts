@@ -4,14 +4,17 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/tailwindcss'],
   runtimeConfig: {
-    apiKey: process.env.LLM_API_KEY,
     mcpUrl: process.env.MCP_URL,
     baseUrl: process.env.BASE_URL,
-    websocketUrl: process.env.WEBSOCKET_URL,
-    vmUrl: process.env.VM_URL,
+    apiKey: process.env.LLM_API_KEY,
     modelName: process.env.MODEL_NAME,
-
+    
     public: {
+      terminalUrl: process.env.TERMINAL_URL,
+      vmUrl: process.env.VM_URL,
+      apiKey: process.env.LLM_API_KEY,
+      baseUrl: process.env.BASE_URL,
+      modelName: process.env.MODEL_NAME,
     }
   },
   build: {

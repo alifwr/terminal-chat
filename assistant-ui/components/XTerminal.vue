@@ -31,15 +31,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const props = defineProps({
-  serverUrl: {
-    type: String,
-    default: 'http://localhost:8080'
-  }
-})
-
-const terminalContainer = ref(null)
-const connectionStatus = ref('disconnected')
+const terminalContainer = ref(null);
+const connectionStatus = ref('disconnected');
+const config = useRuntimeConfig();
+const terminalUrl = config.public.terminalUrl;
 
 const { sessionId } = useTerminalSession();
 let terminal = null
@@ -66,7 +61,7 @@ const connectSocket = async () => {
     // Dynamic import for client-side only
     const { io } = await import('socket.io-client')
 
-    socket = io(props.serverUrl, {
+    socket = io(terminalUrl, {
       transports: ['websocket', 'polling'],
       timeout: 5000
     })
