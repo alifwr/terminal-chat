@@ -27,19 +27,21 @@ services:
     networks:
       - kali_network
 
-  target:
-    image: kalilinux/kali-rolling
-    container_name: pentesting-assist-target
+  targets-manager:
+    build: .
+    container_name: targets-manager
     ports:
-      - "8081:80"
-      - "8082:443"
-    restart: unless-stopped
+      - "8025:8000"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-    stdin_open: true
-    tty: true
+      # Mount the benchmarks directory
+      - ./app/benchmarks:/app/app/benchmarks
+      # Mount Docker socket to allow container to control Docker on host
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped
     networks:
-      - kali_network  
+      - kali_network
     
 networks:
   kali_network:
