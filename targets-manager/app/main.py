@@ -30,7 +30,7 @@ async def startup_event():
     This can be used to load configurations or perform initial setup.
     """
     # Load benchmarks from a JSON file
-    benchmarks_file = Path(__file__).parent / "benchmarks/benchmarks.json"
+    benchmarks_file = Path(__file__).parent / "benchmarks.json"
     if benchmarks_file.exists():
         with open(benchmarks_file, "r") as file:
             app.state.benchmarks = json.load(file)
@@ -65,8 +65,23 @@ async def get_benchmarks() -> Union[dict, str]:
     except Exception as e:
         return str(e)
     
+@app.get("/containers")
+async def get_running_containers() -> Union[dict, str]:
+    """
+    Endpoint to retrieve running Docker containers.
+    Optionally, a filter can be applied to search for specific containers by name.
+    """
+    try:
+        containers = get_containers('xben')
+        if containers:
+            return {"containers": containers}
+        else:
+            return {"message": "No running containers found."}
+    except Exception as e:
+        return str(e)
+    
 @app.get("/turn-on/{target_id}")
-async def turn_on_target(target_id: str) -> Union[dict, str]:
+async def turn_on_target(target_id: str):
     """
     Endpoint to turn on a specific target.
     """
@@ -86,15 +101,17 @@ async def turn_on_target(target_id: str) -> Union[dict, str]:
                     logger.info(f"Generated containers for {target_id}: {[c for c in generated_containers]}")
 
                 if result:
-                    return {"message": f"Target {target_id} turned on.", "command_output": result, "containers": [c for c in generated_containers]}
+                    return {"message": f"Target {target_id} turned on.", "containers": [c for c in generated_containers], "command_output": result}
                 else:
-                    return {"message": f"Target {target_id} turned on, but no command output."}
-                
+                    return {"message": f"Target {target_id} turned on, but no command output.", "containers": [c for c in generated_containers]}
+        
+        # If no matching target is found
+        return {"error": "Target not found."}
     except Exception as e:
         return str(e)
     
 @app.get("/turn-off/{target_id}")
-async def turn_off_target(target_id: str) -> Union[dict, str]:
+async def turn_off_target(target_id: str):
     """
     Endpoint to turn off a specific target.
     """

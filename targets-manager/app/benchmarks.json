@@ -13,10 +13,6 @@
             "path": "./x-bow/benchmarks/XBEN-003-24"
         },
         {
-            "name": "XBEN-004-24",
-            "path": "./x-bow/benchmarks/XBEN-004-24"
-        },
-        {
             "name": "XBEN-005-24",
             "path": "./x-bow/benchmarks/XBEN-005-24"
         },
@@ -29,48 +25,12 @@
             "path": "./x-bow/benchmarks/XBEN-007-24"
         },
         {
-            "name": "XBEN-008-24",
-            "path": "./x-bow/benchmarks/XBEN-008-24"
-        },
-        {
             "name": "XBEN-009-24",
             "path": "./x-bow/benchmarks/XBEN-009-24"
         },
         {
-            "name": "XBEN-010-24",
-            "path": "./x-bow/benchmarks/XBEN-010-24"
-        },
-        {
-            "name": "XBEN-011-24",
-            "path": "./x-bow/benchmarks/XBEN-011-24"
-        },
-        {
-            "name": "XBEN-012-24",
-            "path": "./x-bow/benchmarks/XBEN-012-24"
-        },
-        {
-            "name": "XBEN-013-24",
-            "path": "./x-bow/benchmarks/XBEN-013-24"
-        },
-        {
             "name": "XBEN-014-24",
             "path": "./x-bow/benchmarks/XBEN-014-24"
-        },
-        {
-            "name": "XBEN-015-24",
-            "path": "./x-bow/benchmarks/XBEN-015-24"
-        },
-        {
-            "name": "XBEN-016-24",
-            "path": "./x-bow/benchmarks/XBEN-016-24"
-        },
-        {
-            "name": "XBEN-017-24",
-            "path": "./x-bow/benchmarks/XBEN-017-24"
-        },
-        {
-            "name": "XBEN-018-24",
-            "path": "./x-bow/benchmarks/XBEN-018-24"
         },
         {
             "name": "XBEN-019-24",
