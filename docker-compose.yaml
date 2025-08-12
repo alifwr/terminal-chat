@@ -28,13 +28,13 @@ services:
       - kali_network
 
   targets-manager:
-    build: .
-    container_name: targets-manager
+    build: ./targets-manager
+    container_name: pentesting-assist-targets-manager
     ports:
       - "8025:8000"
     volumes:
       # Mount the benchmarks directory
-      - ./app/benchmarks:/app/app/benchmarks
+      - ./targets-manager/app/benchmarks:/app/app/benchmarks
       # Mount Docker socket to allow container to control Docker on host
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
