@@ -80,7 +80,7 @@ async def get_running_containers() -> Union[dict, str]:
     except Exception as e:
         return str(e)
     
-@app.get("/turn-on/{target_id}")
+@app.get("/{target_id}/turn-on")
 async def turn_on_target(target_id: str):
     """
     Endpoint to turn on a specific target.
@@ -110,7 +110,7 @@ async def turn_on_target(target_id: str):
     except Exception as e:
         return str(e)
     
-@app.get("/turn-off/{target_id}")
+@app.get("/{target_id}/turn-off")
 async def turn_off_target(target_id: str):
     """
     Endpoint to turn off a specific target.

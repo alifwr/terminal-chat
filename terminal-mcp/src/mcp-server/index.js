@@ -104,6 +104,7 @@ export class MCPServer {
                     const result = await this.terminal(`${command}\n`, sessionId);
                     stdout = result.stdout
                     stderr = result.stderr;
+                    console.log(result);
                 } else {
                     const result = await execa(command, [], {
                         shell: true,

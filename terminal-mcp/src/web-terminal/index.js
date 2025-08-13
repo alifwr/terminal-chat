@@ -16,6 +16,26 @@ export class WebTerminalServer {
         this.setupSocketHandlers();
     }
 
+    findDifferences(str1, str2) {
+    const differences = [];
+    const maxLength = Math.max(str1.length, str2.length);
+    
+    for (let i = 0; i < maxLength; i++) {
+        const char1 = str1[i] || '';
+        const char2 = str2[i] || '';
+        
+        if (char1 !== char2) {
+            differences.push({
+                position: i,
+                str1: char1,
+                str2: char2
+            });
+        }
+    }
+    
+    return differences;
+}
+
     invokeTerminal(command, sessionId) {
         // Clear the stored output for each PTY process before sending a new command
         let idlePattern = '';
@@ -26,15 +46,32 @@ export class WebTerminalServer {
                 idlePattern = instance.output;
                 this.activePtyProcesses.set(ptyProcess, { ...instance, output: '', isFinished: false });
                 ptyProcess.write(command);
+                break;
             }
         }
+
+        const idlePatternFormatted = idlePattern.split('\n')
+            .filter(item => item !== '')
+            .slice(-2)
+            .join('\n')
+            .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
 
         // Return the stored outputs after a delay to allow command execution
         return new Promise((resolve) => {
             const intervalId = setInterval(() => {
                 for (const [ptyProcess, instance] of this.activePtyProcesses) {
                     if (instance.pid == sessionId) {
-                        if (idlePattern.split('\n').slice(-2).join('\n') === instance.output.split('\n').slice(-2).join('\n')){
+                        const outputFormatted = instance.output.split('\n')
+                            .filter(item => item !== '')
+                            .slice(-2)
+                            .join('\n')
+                            .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
+
+                            console.log("OutputPattern  : ", outputFormatted)
+                            console.log("IdlePattern: ", idlePatternFormatted)
+                            console.log(this.findDifferences(outputFormatted, idlePatternFormatted))
+                        
+                        if (idlePatternFormatted === outputFormatted) {
                             resolve({
                                 stdout: instance.output,
                                 stderr: ''
@@ -43,7 +80,7 @@ export class WebTerminalServer {
                         }
                     }
                 }
-            });
+            }, 500);
 
             // const timeoutId = setTimeout(() => {
             //     const outputs = [];
